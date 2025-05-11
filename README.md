@@ -5,3 +5,4 @@ This project addresses the problem of **entity resolution** — detecting and gr
 
 The goal was to build a system that assigns a group to each record, ensuring that all entries referring to the same company are grouped together.
 
+---

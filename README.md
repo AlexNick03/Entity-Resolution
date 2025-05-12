@@ -38,6 +38,7 @@ pip install networkx
 ```bash
 pip install pyarrow fastparquet
 ```
+---
 ##  Project Structure
 
 This project is organized into three main modules, each with a specific role in the fuzzy deduplication pipeline:
@@ -49,12 +50,10 @@ This project is organized into three main modules, each with a specific role in 
 
 
 ###  `deduplicate.py`
-
+---
 ## Working Process
 
 This section describes each module of the project, the logic behind it, and exactly what was implemented.
-
----
 
 ###  `parquet_reader.py`
 
@@ -76,7 +75,7 @@ Additionally, before converting, I used an **online parquet viewer** to double-c
 
 ![Edit CSV results after converting](Images/edit_csv_extension.jpg)
 ![Parquete Reader Results](Images/image_2025-05-12_203934228.png)
----
+
 ###  `data_processing.py`
 
 Once I had the raw dataset in CSV format, my next goal was to prepare the data for fuzzy matching — and that meant cleaning and normalizing the fields that matter most for deduplication.
@@ -126,6 +125,7 @@ Finally, I exported:
 - Assigned a `group_id` to each record
 - Chose the most complete record per group
 - Exported both the grouped dataset and the unique company list
+---
 ##  Why Fuzzy Deduplication?
 
 From the beginning, it was clear that this dataset came from multiple inconsistent sources, with no unique ID (like tax number or registration code) that could reliably identify a company.
@@ -172,6 +172,7 @@ I also considered training a machine learning model that could classify whether 
 
 Although this approach can perform very well, it comes with a major cost: it requires a **large, labeled dataset** of true duplicates and non-duplicates to train on.
 
+---
 ##  Results & Conclusions
 
 After applying the full fuzzy deduplication pipeline, the dataset was reduced from over **33,000 raw records** to approximately **21,900 unique companies**.
@@ -187,7 +188,7 @@ This means the system identified and grouped **thousands of duplicate records**,
 - `unique_companies_after_dedup.csv`: 21,900 canonical companies (1 per group)
 - Blocking and weighted similarity scoring provided both scalability and precision
 ![Parquete Reader Results](Images/image_2025-05-12_213530391.png)
----
+
 
 ###  Post-validation Observations
 

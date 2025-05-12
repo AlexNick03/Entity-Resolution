@@ -83,5 +83,26 @@ Additionally, before converting, I used an **online parquet viewer** to double-c
 
 
 ![Edit CSV results after converting](Images/edit_csv_extension.jpg)
-![Edit CSV results after converting](Images/edit_csv_extension.jpg)
+![Parquete Reader Results](Images/image_2025-05-12_203934228.png)
 ---
+###  `data_processing.py`
+
+Once I had the raw dataset in CSV format, my next goal was to prepare the data for fuzzy matching — and that meant cleaning and normalizing the fields that matter most for deduplication.
+
+I began by selecting only the relevant columns from the full dataset of 75+ fields. I focused on those that best define a company's identity: name, website, phone, email, and location. I also included social media URLs and coordinates as secondary signals.
+
+The core of this module is text normalization. I wrote a function that:
+- Converts all text to lowercase
+- Strips leading/trailing spaces
+- Removes noise using regex (e.g. special characters)
+- Normalizes whitespace
+
+This was applied to all object-type fields in the selection. I also specifically cleaned phone numbers by removing `.0` artifacts left from float conversions.
+
+The output of this module is a clean, uniform dataset named `normalized_companies.csv` — ready for fuzzy similarity scoring.
+
+>  What I did:
+- Selected 22 meaningful columns for entity resolution
+- Normalized all textual data (name, email, domain, etc.)
+- Cleaned phone numbers and handled missing values
+- Saved the result to `normalized_companies.csv`

@@ -43,21 +43,13 @@ pip install pyarrow fastparquet
 This project is organized into three main modules, each with a specific role in the fuzzy deduplication pipeline:
 
 ###  `parquet_reader.py`
-- Loads the original `.parquet` file
-- Converts it to `.csv` format using `pandas`
-- Handles missing values and prepares raw input
+
 
 ###  `data_processing.py`
-- Selects the most relevant columns for deduplication
-- Applies normalization (lowercase, strip, cleanup) to key fields like name, domain, phone, email, city
-- Outputs a clean `normalized_companies.csv` file
+
 
 ###  `deduplicate.py`
-- Applies a blocking strategy to limit comparisons (by `country + city`)
-- Computes fuzzy similarity scores using `RapidFuzz`
-- Builds a similarity graph with `NetworkX`
-- Groups duplicate records and assigns a `group_id`
-- Selects the most complete record per group and saves final outputs
+
 ## Working Process
 
 This section describes each module of the project, the logic behind it, and exactly what was implemented.
@@ -194,7 +186,7 @@ This means the system identified and grouped **thousands of duplicate records**,
 - `all_companies_with_group_id.csv`: all 33k+ records, each tagged with a `group_id`
 - `unique_companies_after_dedup.csv`: 21,900 canonical companies (1 per group)
 - Blocking and weighted similarity scoring provided both scalability and precision
-
+![Parquete Reader Results](Images/image_2025-05-12_213530391.png)
 ---
 
 ###  Post-validation Observations

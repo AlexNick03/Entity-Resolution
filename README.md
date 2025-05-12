@@ -106,3 +106,127 @@ The output of this module is a clean, uniform dataset named `normalized_companie
 - Normalized all textual data (name, email, domain, etc.)
 - Cleaned phone numbers and handled missing values
 - Saved the result to `normalized_companies.csv`
+###  `deduplicate.py`
+
+This is the core module of the project — the one responsible for actually grouping duplicate companies based on fuzzy logic.
+
+Once I had the clean, normalized dataset, I wanted to avoid comparing every row to every other row (which would be computationally expensive). So I applied a **blocking strategy**: I grouped records by `country + city`, which makes logical sense and dramatically reduces the number of comparisons.
+
+Then, for each pair within a block, I computed a **custom similarity score** using `RapidFuzz`. I compared:
+- `company_name` (40% weight)
+- `website_domain` (30% weight)
+- `primary_phone` (20% weight)
+- `main_city` (10% weight)
+
+If the total similarity exceeded a threshold (`85`), I added an edge between those two records in a graph. The result was a **graph of connected company nodes** — each connected component representing one deduplicated group.
+
+To identify the best representative from each group, I computed a **completeness score**: how many non-empty fields a row has. The most complete row per group was selected as the canonical version.
+
+Finally, I exported:
+- All records with their assigned `group_id` (`all_companies_with_group_id.csv`)
+- One representative per group (`unique_companies_after_dedup.csv`)
+
+>  What I did:
+- Applied blocking by `country + city` to reduce complexity
+- Computed pairwise fuzzy similarity using `RapidFuzz`
+- Built a similarity graph using `NetworkX`
+- Grouped companies via connected components
+- Assigned a `group_id` to each record
+- Chose the most complete record per group
+- Exported both the grouped dataset and the unique company list
+##  Why Fuzzy Deduplication?
+
+From the beginning, it was clear that this dataset came from multiple inconsistent sources, with no unique ID (like tax number or registration code) that could reliably identify a company.
+
+Many company names were almost identical but not quite:
+- "Veridion" vs "Veridion Inc."
+- "Kronos Group" vs "Kronos"
+- "AutoLux SRL" vs "Auto Lux"
+
+In these cases, exact matching would fail — and that’s why I decided to go with **fuzzy deduplication**.
+
+Fuzzy matching allowed me to:
+- Handle small differences in spelling, punctuation, and formatting
+- Combine multiple fields into a **composite similarity score**
+- Catch duplicates that would otherwise be missed by rule-based matching
+
+I used `RapidFuzz` for its performance and flexibility, and built a weighted similarity function across fields like:
+- `company_name` (40%)
+- `website_domain` (30%)
+- `primary_phone` (20%)
+- `main_city` (10%)
+
+If two companies scored high enough, they were grouped together using graph-based clustering.
+
+>  Fuzzy deduplication was the best tradeoff between accuracy, flexibility, and simplicity — especially in the absence of clean identifiers and labeled data.
+
+---
+
+###  What alternatives I considered
+
+Before deciding on fuzzy matching, I thought about other options:
+
+####  Exact matching
+Comparing fields like `company_name` or `domain` directly using `==`. While fast, it completely fails in cases with even minor variations (e.g. "Veridion Inc." vs "Veridion"). Too rigid for real-world data.
+
+#### Rule-based matching
+Writing custom `if` conditions like:
+```python
+if name == name and city == city and phone == phone:
+    group togethe
+```
+####  Machine learning / supervised classification
+I also considered training a machine learning model that could classify whether two rows refer to the same entity.
+
+Although this approach can perform very well, it comes with a major cost: it requires a **large, labeled dataset** of true duplicates and non-duplicates to train on.
+
+##  Results & Conclusions
+
+After applying the full fuzzy deduplication pipeline, the dataset was reduced from over **33,000 raw records** to approximately **21,900 unique companies**.
+
+This means the system identified and grouped **thousands of duplicate records**, even when:
+- Company names had legal suffixes or slight variations
+- Domains differed by subdomains or formatting
+- Phone numbers or emails were partially missing
+- Location data was incomplete or inconsistent
+
+###  Key Results
+- `all_companies_with_group_id.csv`: all 33k+ records, each tagged with a `group_id`
+- `unique_companies_after_dedup.csv`: 21,900 canonical companies (1 per group)
+- Blocking and weighted similarity scoring provided both scalability and precision
+
+---
+
+###  Post-validation Observations
+
+To validate the effectiveness of the deduplication pipeline, I used ChatGPT as an independent model to reanalyze potential duplicates.  
+The results were generally **satisfying** — most duplicate groups were correctly identified and resolved.
+
+However, upon more detailed inspection using the same model, I also found a few **remaining duplicates** in the `unique_companies_after_dedup.csv` file. These were edge cases where companies had nearly identical names and domains but different locations or minor formatting mismatches.
+
+This reinforces the idea that fuzzy matching alone, while powerful, is not perfect — and some manual or rule-based post-processing may still be needed for production-grade results.
+
+Moreover, it's important to note that different choices in the pipeline could significantly impact the results. For example:
+- The selected columns used in the similarity score (e.g., name vs. domain vs. phone)
+- The weights assigned to each field
+- The similarity threshold (85 in this case)
+- How missing or inconsistent fields are handled
+
+A different configuration — such as a lower threshold, additional field normalization, or prioritizing domain over location — could result in fewer or more aggressive groupings.
+
+> In other words, the deduplication outcome is **sensitive to design decisions**, and fine-tuning based on specific business goals or data characteristics is always recommended.
+
+---
+
+###  Final Thoughts
+
+The approach worked well without requiring labeled data, exact identifiers, or strict rules. It was robust to real-world messiness and highly adaptable.
+
+If taken further in a production setting, this pipeline could be extended with:
+- Active learning or semi-supervised ML to refine groupings
+- Domain-specific override rules (e.g., website match = force group)
+- Integration with UI tools for manual validation
+
+> This project shows that even in the absence of perfect data, high-quality deduplication is possible with the right balance of logic, flexibility, and practical engineering.
+
+

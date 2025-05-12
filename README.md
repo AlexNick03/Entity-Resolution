@@ -82,5 +82,6 @@ Additionally, before converting, I used an **online parquet viewer** to double-c
 - Exported the dataset as `veridion_entity_resolution_challenge.csv` for further processing
 
 
-
+![Edit CSV results after converting](Images/edit_csv_extension.jpg)
+![Edit CSV results after converting](Images/edit_csv_extension.jpg)
 ---

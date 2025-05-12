@@ -47,8 +47,8 @@ representatives = df.sort_values("completeness_score", ascending=False).drop_dup
 representatives = representatives.drop(columns=["completeness_score", "block_key"])
 
 #7. Salvare
-df.to_csv("all_companies_with_group_id.csv", index=False)
-representatives.to_csv("unique_companies_after_dedup.csv", index=False)
+df.to_csv("results/all_companies_with_group_id.csv", index=False)
+representatives.to_csv("results/unique_companies_after_dedup.csv", index=False)
 
 print("Grupare completă. Rezultatul este în:")
 print(" - all_companies_with_group_id.csv (toate rândurile cu group_id)")

@@ -92,14 +92,11 @@ groups = list(nx.connected_components(G))
 group_map = {idx: gid for gid, group in enumerate(groups) for idx in group}
 df["group_id"] = df.index.map(group_map).fillna(-1).astype(int)
 
-# 9. Select most complete record per group
-df["completeness_score"] = df.apply(lambda row: sum([1 for val in row if val != ""]), axis=1)
-representatives = df.sort_values("completeness_score", ascending=False).drop_duplicates(subset=["group_id"])
-representatives = representatives.drop(columns=["completeness_score", "block_key", "name_group"])
+# 9. Create unique representatives
+representatives = df.drop_duplicates(subset=["group_id"])
 
 # 10. Save output
-df.to_csv("Results/all_companies_with_group_id.csv", index=False)
-representatives.to_csv("Results/unique_companies.csv", index=False)
-
+df.sort_values("group_id").to_csv("Results/all_companies_with_group_id.csv", index=False)
+representatives.sort_values("group_id").to_csv("Results/unique_companies.csv", index=False)
 print(" Deduplication complete.")
 

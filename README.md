@@ -92,7 +92,7 @@ This was applied to all object-type fields in the selection. I also specifically
 
 In addition to normalization, I also applied a filtering rule:  
 **rows that contained fewer than 3 non-empty key fields** — among `company_name`, `company_legal_names`, `company_commercial_names`, `short_description`, and `website_domain` — were excluded entirely.  
-This helped reduce noise and avoid scoring meaningless or unmatchable records.
+This helped reduce noise and avoid scoring meaningless or unmatchable records. The new normalized csv had 31656 rows of data.
 
 The output of this module is a clean, uniform dataset named `normalized_companies.csv` — ready for fuzzy similarity scoring.
 
@@ -102,6 +102,7 @@ The output of this module is a clean, uniform dataset named `normalized_companie
 - Cleaned phone numbers and handled missing values
 - Filtered out records with too little relevant information
 - Saved the result to `normalized_companies.csv`
+
 ### `deduplicate.py`
 
 This is the core module of the project — responsible for identifying and grouping duplicate companies using fuzzy logic and graph clustering.

@@ -102,7 +102,7 @@ The output of this module is a clean, uniform dataset named `normalized_companie
 - Cleaned phone numbers and handled missing values
 - Filtered out records with too little relevant information
 - Saved the result to `normalized_companies.csv`
-
+![Normalized CSV](Images/image_2025-05-13_183746236.png)
 ### `deduplicate.py`
 
 This is the core module of the project — responsible for identifying and grouping duplicate companies using fuzzy logic and graph clustering.

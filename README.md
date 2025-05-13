@@ -76,7 +76,7 @@ Additionally, before converting, I used an **online parquet viewer** to double-c
 ![Edit CSV results after converting](Images/edit_csv_extension.jpg)
 ![Parquete Reader Results](Images/image_2025-05-12_203934228.png)
 
-###  `data_processing.py`
+### `data_processing.py`
 
 Once I had the raw dataset in CSV format, my next goal was to prepare the data for fuzzy matching — and that meant cleaning and normalizing the fields that matter most for deduplication.
 
@@ -90,41 +90,48 @@ The core of this module is text normalization. I wrote a function that:
 
 This was applied to all object-type fields in the selection. I also specifically cleaned phone numbers by removing `.0` artifacts left from float conversions.
 
+In addition to normalization, I also applied a filtering rule:  
+**rows that contained fewer than 3 non-empty key fields** — among `company_name`, `company_legal_names`, `company_commercial_names`, `short_description`, and `website_domain` — were excluded entirely.  
+This helped reduce noise and avoid scoring meaningless or unmatchable records.
+
 The output of this module is a clean, uniform dataset named `normalized_companies.csv` — ready for fuzzy similarity scoring.
 
->  What I did:
+> What I did:
 - Selected 22 meaningful columns for entity resolution
 - Normalized all textual data (name, email, domain, etc.)
 - Cleaned phone numbers and handled missing values
+- Filtered out records with too little relevant information
 - Saved the result to `normalized_companies.csv`
-###  `deduplicate.py`
+### `deduplicate.py`
 
-This is the core module of the project — the one responsible for actually grouping duplicate companies based on fuzzy logic.
+This is the core module of the project — responsible for identifying and grouping duplicate companies using fuzzy logic and graph clustering.
 
-Once I had the clean, normalized dataset, I wanted to avoid comparing every row to every other row (which would be computationally expensive). So I applied a **blocking strategy**: I grouped records by `country + city`, which makes logical sense and dramatically reduces the number of comparisons.
+Once the clean, normalized dataset was ready, I avoided comparing every record to every other one (which would be computationally infeasible) by applying a **relaxed blocking strategy**: records were only compared within blocks defined as the first 4 characters of `company_name` + the first 4 of `website_domain`. Additionally, I ensured that all companies sharing the exact same `company_name` were also compared directly.
 
-Then, for each pair within a block, I computed a **custom similarity score** using `RapidFuzz`. I compared:
-- `company_name` (40% weight)
-- `website_domain` (30% weight)
-- `primary_phone` (20% weight)
-- `main_city` (10% weight)
+Each pair was scored using a custom similarity function powered by `RapidFuzz`, combining:
+- `company_name`
+- `company_commercial_names`
+- `website_domain`
+- `primary_phone`
+- `short_description`
 
-If the total similarity exceeded a threshold (`85`), I added an edge between those two records in a graph. The result was a **graph of connected company nodes** — each connected component representing one deduplicated group.
+To improve accuracy, I also:
+- Added scoring bonuses if companies shared tokens in `domains` or `website_url`
+- Gave extra points for overlapping social media links (Facebook, LinkedIn, etc.)
+- **Forced a match (score = 100)** when names or domains had very high similarity (≥ 98%) or social URLs were nearly identical
 
-To identify the best representative from each group, I computed a **completeness score**: how many non-empty fields a row has. The most complete row per group was selected as the canonical version.
+All comparisons scoring above a certain threshold (85) were connected in a graph. Connected components were then interpreted as duplicate groups.
 
-Finally, I exported:
-- All records with their assigned `group_id` (`all_companies_with_group_id.csv`)
-- One representative per group (`unique_companies_after_dedup.csv`)
+For each group, the most complete record (the one with the most filled-in fields) was selected as the representative.
 
->  What I did:
-- Applied blocking by `country + city` to reduce complexity
-- Computed pairwise fuzzy similarity using `RapidFuzz`
-- Built a similarity graph using `NetworkX`
-- Grouped companies via connected components
-- Assigned a `group_id` to each record
-- Chose the most complete record per group
-- Exported both the grouped dataset and the unique company list
+> What I did:
+- Replaced location-based blocking with relaxed character-based blocking
+- Ensured all identical names were compared regardless of block
+- Designed a scoring function with custom weights and smart bonuses
+- Added forced matches when similarity was extremely high
+- Built a similarity graph with NetworkX and grouped via connected components
+- Selected the most complete entry as the representative
+- Exported the results to `all_companies_with_group_id.csv` and `unique_companies.csv`
 ---
 ##  Why Fuzzy Deduplication?
 

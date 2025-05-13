@@ -126,7 +126,7 @@ All comparisons scoring above a certain threshold (85) were connected in a graph
 For each group, the most complete record (the one with the most filled-in fields) was selected as the representative.
 
 > What I did:
-- Replaced location-based blocking with relaxed character-based blocking
+- Used relaxed character-based blocking
 - Ensured all identical names were compared regardless of block
 - Designed a scoring function with custom weights and smart bonuses
 - Added forced matches when similarity was extremely high
@@ -139,9 +139,9 @@ For each group, the most complete record (the one with the most filled-in fields
 From the beginning, it was clear that this dataset came from multiple inconsistent sources, with no unique ID (like tax number or registration code) that could reliably identify a company.
 
 Many company names were nearly identical but had small variations:
-- "Veridion" vs "Veridion Inc."
-- "AutoLux SRL" vs "Auto Lux"
-- "Kronos Group" vs "Kronos"
+- "owens liquors" vs "owens liquors inc."
+- "aaa auto olomouc" vs "aaa auto sokolov"
+- "tescoma" vs "tescoma kft."
 
 In these cases, exact matching would fail  I decided to implement **fuzzy deduplication** after a lot of research.
 Fuzzy matching allowed me to:

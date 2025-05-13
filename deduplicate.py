@@ -68,7 +68,7 @@ def compute_similarity_score(row1, row2):
 G = nx.Graph()
 G.add_nodes_from(df.index)
 
-print("🔍 Starting fuzzy matching with improved scoring and blocking...")
+print(" Starting fuzzy matching with improved scoring and blocking...")
 
 # 6. Match within relaxed blocking key
 for block_value, block_df in tqdm(df.groupby("block_key")):

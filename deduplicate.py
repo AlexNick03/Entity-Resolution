@@ -93,7 +93,9 @@ group_map = {idx: gid for gid, group in enumerate(groups) for idx in group}
 df["group_id"] = df.index.map(group_map).fillna(-1).astype(int)
 
 # 9. Create unique representatives
-representatives = df.drop_duplicates(subset=["group_id"])
+df["completeness_score"] = df.apply(lambda row: sum([1 for val in row if val != ""]), axis=1)
+representatives = df.sort_values("completeness_score", ascending=False).drop_duplicates(subset=["group_id"])
+representatives = representatives.drop(columns=["completeness_score"])
 
 # 10. Save output
 df.sort_values("group_id").to_csv("Results/all_companies_with_group_id.csv", index=False)

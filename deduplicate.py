@@ -101,5 +101,5 @@ representatives = representatives.drop(columns=["completeness_score", "block_key
 df.to_csv("Results/all_companies_with_group_id.csv", index=False)
 representatives.to_csv("Results/unique_companies.csv", index=False)
 
-print("✅ Deduplication complete.")
+print(" Deduplication complete.")
 

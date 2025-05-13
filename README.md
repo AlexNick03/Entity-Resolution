@@ -12,7 +12,6 @@ The goal was to build a system that assigns a group to each record, ensuring tha
 - Select relevant features (name, domain, phone, email, location)
 - Preprocess text fields (**lowercase, strip, remove noise**)
 - Compute pairwise similarity using **RapidFuzz (token_sort_ratio)**
-- Block comparisons by **country + city** to improve performance
 - Build graph of similar entries and group using **NetworkX components**
 - Pick the most complete company per group as canonical record
 ---
@@ -186,18 +185,19 @@ While this method could potentially lead to more accurate results by capturing d
 
 
 ---
-## Results & Conclusions
+## Results
 
-After multiple rounds of testing, tuning, and rethinking the matching logic, the final version of the fuzzy deduplication pipeline produced **a strong and reliable result**: the dataset was reduced from over **33000 records** to  **7845 unique companies**.
+After multiple rounds of testing, tuning, and rethinking the matching logic, the final version of the fuzzy deduplication pipeline produced **a strong and reliable result**: the dataset was reduced from over **33000 records** to  **7844 unique companies**.
 
 This significant reduction confirms that the system correctly identified and grouped thousands of duplicate entries — even when data was inconsistent, incomplete, or formatted differently across sources.
 
 ### Key Results
 - `all_companies_with_group_id.csv`: All companies, each tagged with a `group_id`. Eeach sorted by the `group_id` in ascending order.
-- `unique_companies.csv`: 7,300 canonical companies (1 per group). Eeach sorted by the `group_id` in ascending order.
+- `unique_companies.csv`: 7844 canonical companies (1 per group). Eeach sorted by the `group_id` in ascending order.
 - Custom scoring, blocking, and forced matching rules helped capture real duplicates that standard fuzzy logic alone might miss
 
-![Parquete Reader Results](Images/image_2025-05-12_213530391.png)
+![Unique companies number](Images/image_2025-05-13_190313865.png)
+
 
 ### Optimization Process
 
@@ -207,36 +207,13 @@ These results were not achieved in one pass. Throughout the process, I tried mul
 - Bonus logic based on domain tokens, website URLs, and social media overlaps
 - Forced grouping when high similarity was detected (≥ 98%)
 
-
-###  Post-validation Observations
-
-To validate the effectiveness of the deduplication pipeline, I used ChatGPT as an independent model to reanalyze potential duplicates.  
-The results were generally **satisfying** — most duplicate groups were correctly identified and resolved.
-
-However, upon more detailed inspection using the same model, I also found a few **remaining duplicates** in the `unique_companies_after_dedup.csv` file. These were edge cases where companies had nearly identical names and domains but different locations or minor formatting mismatches.
-
-This reinforces the idea that fuzzy matching alone, while powerful, is not perfect — and some manual or rule-based post-processing may still be needed for production-grade results.
-
-Moreover, it's important to note that different choices in the pipeline could significantly impact the results. For example:
-- The selected columns used in the similarity score (e.g., name vs. domain vs. phone)
-- The weights assigned to each field
-- The similarity threshold (85 in this case)
-- How missing or inconsistent fields are handled
-
-A different configuration — such as a lower threshold, additional field normalization, or prioritizing domain over location — could result in fewer or more aggressive groupings.
-
-> In other words, the deduplication outcome is **sensitive to design decisions**, and fine-tuning based on specific business goals or data characteristics is always recommended.
-
----
-
 ###  Final Thoughts
 
-The approach worked well without requiring labeled data, exact identifiers, or strict rules. It was robust to real-world messiness and highly adaptable.
+This is the best solution I was able to produce given the constraints, and it reflects a balance between technical robustness and real-world practicality.
 
-If taken further in a production setting, this pipeline could be extended with:
-- Active learning or semi-supervised ML to refine groupings
-- Domain-specific override rules (e.g., website match = force group)
-- Integration with UI tools for manual validation
----
+Although there may still be cases where companies were either grouped too aggressively or missed altogether, I believe this approach was significantly more challenging and insightful than simply using pre-trained model to detect duplicates.
+
+Even though pre-trained models represent a more "modern" direction, I preferred to use artificial intelligence as a **support tool**, rather than allowing it to make all the decisions for me. This way, I was still fully engaged in the design process, using AI to validate, test, push my own thinking and learn.  
+
 
 

@@ -1,5 +1,4 @@
 # Entity-Resolution
-Veridion Deeptech Engineer Internship Challenge
 
 This project addresses the problem of **entity resolution** — detecting and grouping duplicate records that refer to the same real-world company, even if their data varies slightly. The dataset consists of ~35k companies from different sources, which leads to inconsistencies in names, contact details, and web presence.
 
